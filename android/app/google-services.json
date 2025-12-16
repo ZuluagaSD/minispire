@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "600108240234",
+    "project_id": "mininspire-57df3",
+    "storage_bucket": "mininspire-57df3.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:600108240234:android:676cad74962665adebe913",
+        "android_client_info": {
+          "package_name": "com.lesogs.minispire"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDne_Gt_cg_o3hjYPI34VPyTFUt7eEfAVI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
