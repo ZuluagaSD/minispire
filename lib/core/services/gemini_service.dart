@@ -49,10 +49,12 @@ class GeminiService {
   /// [prompt] - Description of the miniature paint scheme
   /// [highQuality] - Use Nano Banana Pro for 4K output (slower)
   /// [referenceImage] - Optional reference image for style transfer
+  /// [colorPalette] - Optional list of hex color codes to use in the scheme
   Future<InspirationResult> generateInspiration(
     String prompt, {
     bool highQuality = false,
     Uint8List? referenceImage,
+    List<String>? colorPalette,
   }) async {
     final model = highQuality ? _proModel : _flashModel;
     if (model == null) {
@@ -60,7 +62,7 @@ class GeminiService {
     }
 
     // Build the prompt with miniature painting context
-    final enhancedPrompt = _buildMiniaturePrompt(prompt);
+    final enhancedPrompt = _buildMiniaturePrompt(prompt, colorPalette: colorPalette);
 
     // Create content parts
     final List<Part> parts = [];
@@ -177,11 +179,19 @@ Example:
   }
 
   /// Build an enhanced prompt for miniature painting context
-  String _buildMiniaturePrompt(String userPrompt) {
+  String _buildMiniaturePrompt(String userPrompt, {List<String>? colorPalette}) {
+    final colorSection = colorPalette != null && colorPalette.isNotEmpty
+        ? '''
+Color Palette: Use these specific colors as the primary color scheme:
+${colorPalette.map((c) => '- $c').join('\n')}
+'''
+        : '';
+
     return '''
 Generate a high-quality reference image for miniature painting.
 Style: Detailed miniature wargaming model, tabletop quality
 Subject: $userPrompt
+$colorSection
 Requirements:
 - Clear color scheme visible
 - Good lighting to show paint details

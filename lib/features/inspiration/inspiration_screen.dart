@@ -1,5 +1,6 @@
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
+import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../core/providers.dart';
@@ -19,11 +20,24 @@ class _InspirationScreenState extends ConsumerState<InspirationScreen> {
   String? _generatedDescription;
   bool _isGenerating = false;
   String? _error;
+  List<Color> _selectedColors = [];
 
   @override
   void dispose() {
     _promptController.dispose();
     super.dispose();
+  }
+
+  void _addColor(Color color) {
+    setState(() {
+      _selectedColors.add(color);
+    });
+  }
+
+  void _removeColor(int index) {
+    setState(() {
+      _selectedColors.removeAt(index);
+    });
   }
 
   Future<void> _pickReferenceImage() async {
@@ -55,10 +69,19 @@ class _InspirationScreenState extends ConsumerState<InspirationScreen> {
       final geminiService = ref.read(geminiServiceProvider);
       final highQuality = ref.read(highQualityModeProvider);
 
+      // Convert colors to hex strings for the API
+      final colorHexList = _selectedColors.isNotEmpty
+          ? _selectedColors
+              .map((c) =>
+                  '#${c.value.toRadixString(16).substring(2).toUpperCase()}')
+              .toList()
+          : null;
+
       final result = await geminiService.generateInspiration(
         _promptController.text.trim(),
         highQuality: highQuality,
         referenceImage: _referenceImage,
+        colorPalette: colorHexList,
       );
 
       setState(() {
@@ -219,6 +242,87 @@ class _InspirationScreenState extends ConsumerState<InspirationScreen> {
                         icon: const Icon(Icons.add_photo_alternate),
                         label: const Text('Add Reference for Style Transfer'),
                       ),
+                  ],
+                ),
+              ),
+            ),
+
+            const SizedBox(height: 16),
+
+            // Color palette section
+            Card(
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        const Icon(Icons.palette, size: 20),
+                        const SizedBox(width: 8),
+                        const Text(
+                          'Color Palette (Optional)',
+                          style: TextStyle(fontWeight: FontWeight.w500),
+                        ),
+                        const Spacer(),
+                        if (_selectedColors.isNotEmpty)
+                          TextButton(
+                            onPressed: () {
+                              setState(() {
+                                _selectedColors.clear();
+                              });
+                            },
+                            child: const Text('Clear All'),
+                          ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    // Selected colors display
+                    if (_selectedColors.isNotEmpty) ...[
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: [
+                          for (int i = 0; i < _selectedColors.length; i++)
+                            GestureDetector(
+                              onTap: () => _removeColor(i),
+                              child: Container(
+                                width: 40,
+                                height: 40,
+                                decoration: BoxDecoration(
+                                  color: _selectedColors[i],
+                                  borderRadius: BorderRadius.circular(8),
+                                  border: Border.all(
+                                    color: Colors.white,
+                                    width: 2,
+                                  ),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black.withOpacity(0.2),
+                                      blurRadius: 4,
+                                      offset: const Offset(0, 2),
+                                    ),
+                                  ],
+                                ),
+                                child: const Icon(
+                                  Icons.close,
+                                  color: Colors.white,
+                                  size: 20,
+                                ),
+                              ),
+                            ),
+                          _AddColorButton(onColorSelected: _addColor),
+                        ],
+                      ),
+                    ] else
+                      _AddColorButton(onColorSelected: _addColor),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Tap to add colors, tap a color to remove it',
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: Theme.of(context).colorScheme.onSurfaceVariant,
+                          ),
+                    ),
                   ],
                 ),
               ),
@@ -392,6 +496,97 @@ class _ExamplePromptChip extends StatelessWidget {
     return ActionChip(
       label: Text(label),
       onPressed: onTap,
+    );
+  }
+}
+
+class _AddColorButton extends StatefulWidget {
+  final ValueChanged<Color> onColorSelected;
+
+  const _AddColorButton({required this.onColorSelected});
+
+  @override
+  State<_AddColorButton> createState() => _AddColorButtonState();
+}
+
+class _AddColorButtonState extends State<_AddColorButton> {
+  Color _pickerColor = Colors.blue;
+
+  @override
+  Widget build(BuildContext context) {
+    return OutlinedButton(
+      onPressed: () => _showColorPicker(context),
+      style: OutlinedButton.styleFrom(
+        minimumSize: const Size(40, 40),
+        padding: const EdgeInsets.all(8),
+      ),
+      child: const Icon(Icons.add),
+    );
+  }
+
+  void _showColorPicker(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setModalState) => Padding(
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(context).viewInsets.bottom,
+          ),
+          child: Container(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Colour picker',
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.bold,
+                          ),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.share),
+                      onPressed: () {},
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                ColorPicker(
+                  pickerColor: _pickerColor,
+                  onColorChanged: (color) {
+                    setModalState(() {
+                      _pickerColor = color;
+                    });
+                  },
+                  colorPickerWidth: MediaQuery.of(context).size.width - 32,
+                  pickerAreaHeightPercent: 0.5,
+                  enableAlpha: false,
+                  displayThumbColor: true,
+                  paletteType: PaletteType.hsvWithHue,
+                  labelTypes: const [],
+                  pickerAreaBorderRadius: BorderRadius.circular(8),
+                ),
+                const SizedBox(height: 16),
+                SizedBox(
+                  width: double.infinity,
+                  child: FilledButton(
+                    onPressed: () {
+                      widget.onColorSelected(_pickerColor);
+                      Navigator.pop(context);
+                    },
+                    child: const Text('Add Color'),
+                  ),
+                ),
+                const SizedBox(height: 8),
+              ],
+            ),
+          ),
+        ),
+      ),
     );
   }
 }
