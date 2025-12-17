@@ -1,3 +1,78 @@
+# Miscellaneous
+*.class
+*.log
+*.pyc
+*.swp
+.DS_Store
+.atom/
+.buildlog/
+.history
+.svn/
+migrate_working_dir/
+
+# IntelliJ related
+*.iml
+*.ipr
+*.iws
+.idea/
+
+# VS Code
+.vscode/
+
+# Flutter/Dart/Pub related
+**/doc/api/
+**/ios/Flutter/.last_build_id
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.pub-cache/
+.pub/
+/build/
+
+# Symbolication related
+app.*.symbols
+
+# Obfuscation related
+app.*.map.json
+
+# Android Studio will place build artifacts here
+/android/app/debug
+/android/app/profile
+/android/app/release
 
 # FVM Version Cache
 .fvm/
+
+# Coverage
+coverage/
+*.lcov
+
+# Test outputs
+.test_coverage.dart
+
+# Generated files
+*.g.dart
+*.freezed.dart
+*.gr.dart
+*.config.dart
+*.mocks.dart
+
+# Environment files (uncomment if you want to ignore these)
+# .env
+# .env.*
+
+# Firebase (uncomment if you want to keep these private)
+# lib/firebase_options.dart
+# android/app/google-services.json
+# ios/Runner/GoogleService-Info.plist
+
+# Fastlane (if used)
+**/fastlane/report.xml
+**/fastlane/Preview.html
+**/fastlane/screenshots
+**/fastlane/test_output
+
+# Keystore files (already in android/.gitignore but good to have here too)
+*.jks
+*.keystore
+key.properties

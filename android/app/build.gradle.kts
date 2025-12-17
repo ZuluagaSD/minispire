@@ -22,7 +22,7 @@ android {
 
     defaultConfig {
         applicationId = "com.lesogs.minispire"
-        minSdk = 23  // Required for Firebase AI Logic
+        minSdk = flutter.minSdkVersion  // Required for Firebase AI Logic
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
