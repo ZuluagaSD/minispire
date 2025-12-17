@@ -9,9 +9,15 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   // Initialize Firebase
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
+  try {
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+    print("✅ Firebase initialized successfully");
+  } catch (e, stackTrace) {
+    print("❌ Firebase initialization failed: $e");
+    print("Stack trace: $stackTrace");
+  }
 
   runApp(const ProviderScope(child: MinispireApp()));
 }
@@ -28,6 +34,16 @@ class MinispireApp extends StatelessWidget {
       darkTheme: AppTheme.darkTheme,
       themeMode: ThemeMode.dark, // Default to dark theme for painters
       routerConfig: appRouter,
+      builder: (context, child) {
+        // Wrap the entire app to dismiss keyboard when tapping outside text fields
+        return GestureDetector(
+          onTap: () {
+            // Unfocus any text field to hide the keyboard
+            FocusScope.of(context).unfocus();
+          },
+          child: child,
+        );
+      },
     );
   }
 }
