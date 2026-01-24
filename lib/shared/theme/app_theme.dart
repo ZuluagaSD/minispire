@@ -2,12 +2,12 @@ import 'package:flutter/material.dart';
 
 /// App theme configuration for Minispire
 class AppTheme {
-  // Brand colors inspired by miniature painting
-  static const Color primaryColor = Color(0xFF5C4033);  // Dark brown (wood)
-  static const Color secondaryColor = Color(0xFFD4AF37); // Gold (metallic)
-  static const Color accentColor = Color(0xFF8B0000);    // Dark red (blood)
-  static const Color surfaceColor = Color(0xFF1A1A1A);   // Dark surface
-  static const Color backgroundColor = Color(0xFF121212); // Background
+  // Brand colors matching the app icon (purple/blue gradient)
+  static const Color primaryColor = Color(0xFF6B4E9B);   // Deep purple
+  static const Color secondaryColor = Color(0xFF7B68EE); // Medium slate blue
+  static const Color accentColor = Color(0xFF5B8DEE);    // Light blue
+  static const Color surfaceColor = Color(0xFF1E1B2E);   // Dark purple surface
+  static const Color backgroundColor = Color(0xFF13111C); // Dark background
 
   /// Light theme
   static ThemeData get lightTheme {
