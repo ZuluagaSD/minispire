@@ -1,9 +1,17 @@
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/providers.dart';
 
 class ChatScreen extends ConsumerStatefulWidget {
-  const ChatScreen({super.key});
+  final Uint8List? initialImageBytes;
+  final String? initialPrompt;
+
+  const ChatScreen({
+    super.key,
+    this.initialImageBytes,
+    this.initialPrompt,
+  });
 
   @override
   ConsumerState<ChatScreen> createState() => _ChatScreenState();
@@ -14,6 +22,23 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
   final ScrollController _scrollController = ScrollController();
   bool _isLoading = false;
   String _currentResponse = '';
+  Uint8List? _pendingImageBytes;
+  bool _hasProcessedInitialImage = false;
+
+  @override
+  void initState() {
+    super.initState();
+    // Process initial image if provided
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (widget.initialImageBytes != null && !_hasProcessedInitialImage) {
+        _hasProcessedInitialImage = true;
+        _sendMessageWithImage(
+          widget.initialPrompt ?? 'How do I paint this?',
+          widget.initialImageBytes!,
+        );
+      }
+    });
+  }
 
   @override
   void dispose() {
@@ -39,11 +64,16 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     if (message.isEmpty || _isLoading) return;
 
     _messageController.clear();
+    await _sendMessageWithImage(message, null);
+  }
 
-    // Add user message
+  Future<void> _sendMessageWithImage(String message, Uint8List? imageBytes) async {
+    if (message.isEmpty || _isLoading) return;
+
+    // Add user message with optional image
     ref.read(chatHistoryProvider.notifier).update((state) => [
           ...state,
-          ChatMessage(content: message, isUser: true),
+          ChatMessage(content: message, isUser: true, imageBytes: imageBytes),
         ]);
     _scrollToBottom();
 
@@ -56,7 +86,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
       final geminiService = ref.read(geminiServiceProvider);
 
       // Stream the response for better UX
-      await for (final chunk in geminiService.streamChat(message)) {
+      await for (final chunk in geminiService.streamChat(message, imageBytes: imageBytes)) {
         setState(() {
           _currentResponse += chunk;
         });
@@ -155,6 +185,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                       return _ChatBubble(
                         message: msg.content,
                         isUser: msg.isUser,
+                        imageBytes: msg.imageBytes,
                       );
                     },
                   ),
@@ -279,11 +310,13 @@ class _ChatBubble extends StatelessWidget {
   final String message;
   final bool isUser;
   final bool isStreaming;
+  final Uint8List? imageBytes;
 
   const _ChatBubble({
     required this.message,
     required this.isUser,
     this.isStreaming = false,
+    this.imageBytes,
   });
 
   @override
@@ -292,7 +325,6 @@ class _ChatBubble extends StatelessWidget {
       alignment: isUser ? Alignment.centerRight : Alignment.centerLeft,
       child: Container(
         margin: const EdgeInsets.only(bottom: 12),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         constraints: BoxConstraints(
           maxWidth: MediaQuery.of(context).size.width * 0.8,
         ),
@@ -307,31 +339,54 @@ class _ChatBubble extends StatelessWidget {
             bottomRight: Radius.circular(isUser ? 4 : 16),
           ),
         ),
-        child: Row(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.end,
           children: [
-            Flexible(
-              child: Text(
-                message,
-                style: TextStyle(
-                  color: isUser
-                      ? Theme.of(context).colorScheme.onPrimary
-                      : Theme.of(context).colorScheme.onSurface,
+            // Show image if present
+            if (imageBytes != null)
+              ClipRRect(
+                borderRadius: const BorderRadius.only(
+                  topLeft: Radius.circular(16),
+                  topRight: Radius.circular(16),
                 ),
+                child: Image.memory(
+                  imageBytes!,
+                  width: double.infinity,
+                  height: 150,
+                  fit: BoxFit.cover,
+                ),
+              ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Flexible(
+                    child: Text(
+                      message,
+                      style: TextStyle(
+                        color: isUser
+                            ? Theme.of(context).colorScheme.onPrimary
+                            : Theme.of(context).colorScheme.onSurface,
+                      ),
+                    ),
+                  ),
+                  if (isStreaming) ...[
+                    const SizedBox(width: 8),
+                    SizedBox(
+                      width: 12,
+                      height: 12,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: Theme.of(context).colorScheme.outline,
+                      ),
+                    ),
+                  ],
+                ],
               ),
             ),
-            if (isStreaming) ...[
-              const SizedBox(width: 8),
-              SizedBox(
-                width: 12,
-                height: 12,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                  color: Theme.of(context).colorScheme.outline,
-                ),
-              ),
-            ],
           ],
         ),
       ),

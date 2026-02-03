@@ -12,7 +12,7 @@ class HomeScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Minispire'),
+        title: const Text('Mini Inspire'),
         actions: [
           IconButton(
             icon: const Icon(Icons.settings_outlined),
@@ -44,7 +44,7 @@ class HomeScreen extends ConsumerWidget {
                         const SizedBox(width: 12),
                         const Expanded(
                           child: Text(
-                            'Welcome to Minispire',
+                            'Welcome to Mini Inspire',
                             style: TextStyle(
                               fontSize: 20,
                               fontWeight: FontWeight.bold,

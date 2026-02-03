@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import '../../core/providers.dart';
 import '../../core/models/inspiration.dart';
+import '../../core/router.dart';
 
 class GalleryScreen extends ConsumerStatefulWidget {
   const GalleryScreen({super.key});
@@ -239,16 +241,6 @@ class _GalleryScreenState extends ConsumerState<GalleryScreen> {
                         Expanded(
                           child: OutlinedButton.icon(
                             onPressed: () {
-                              // TODO: Share functionality
-                            },
-                            icon: const Icon(Icons.share),
-                            label: const Text('Share'),
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: FilledButton.icon(
-                            onPressed: () {
                               ref
                                   .read(inspirationsProvider.notifier)
                                   .toggleFavorite(inspiration.id);
@@ -264,6 +256,23 @@ class _GalleryScreenState extends ConsumerState<GalleryScreen> {
                                   ? 'Unfavorite'
                                   : 'Favorite',
                             ),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: FilledButton.icon(
+                            onPressed: () {
+                              Navigator.pop(context);
+                              context.go(
+                                '/chat',
+                                extra: ChatWithInspirationExtra(
+                                  imageBytes: inspiration.imageBytes,
+                                  prompt: 'How do I paint this? Give me step-by-step instructions for: ${inspiration.prompt}',
+                                ),
+                              );
+                            },
+                            icon: const Icon(Icons.brush),
+                            label: const Text('Get Tips'),
                           ),
                         ),
                       ],

@@ -1,3 +1,4 @@
+import 'dart:typed_data';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'services/gemini_service.dart';
 import 'services/storage_service.dart';
@@ -83,10 +84,12 @@ class ChatMessage {
   final String content;
   final bool isUser;
   final DateTime timestamp;
+  final Uint8List? imageBytes;
 
   ChatMessage({
     required this.content,
     required this.isUser,
     DateTime? timestamp,
+    this.imageBytes,
   }) : timestamp = timestamp ?? DateTime.now();
 }

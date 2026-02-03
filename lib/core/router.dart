@@ -1,9 +1,18 @@
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../features/home/home_screen.dart';
 import '../features/inspiration/inspiration_screen.dart';
 import '../features/chat/chat_screen.dart';
 import '../features/gallery/gallery_screen.dart';
+
+/// Data class for passing inspiration to chat
+class ChatWithInspirationExtra {
+  final Uint8List imageBytes;
+  final String prompt;
+
+  ChatWithInspirationExtra({required this.imageBytes, required this.prompt});
+}
 
 /// App routing configuration
 final appRouter = GoRouter(
@@ -29,9 +38,15 @@ final appRouter = GoRouter(
         GoRoute(
           path: '/chat',
           name: 'chat',
-          pageBuilder: (context, state) => const NoTransitionPage(
-            child: ChatScreen(),
-          ),
+          pageBuilder: (context, state) {
+            final extra = state.extra as ChatWithInspirationExtra?;
+            return NoTransitionPage(
+              child: ChatScreen(
+                initialImageBytes: extra?.imageBytes,
+                initialPrompt: extra?.prompt,
+              ),
+            );
+          },
         ),
         GoRoute(
           path: '/gallery',

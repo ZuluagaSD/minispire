@@ -122,19 +122,41 @@ User question: $message
   }
 
   /// Stream chat responses for better UX
-  Stream<String> streamChat(String message, {List<Content>? history}) async* {
+  Stream<String> streamChat(String message, {List<Content>? history, Uint8List? imageBytes}) async* {
     if (_chatModel == null) {
       throw StateError('GeminiService not initialized. Call initialize() first.');
     }
 
     final chat = _chatModel!.startChat(history: history ?? []);
 
-    final contextualMessage = '''
+    Content content;
+    if (imageBytes != null) {
+      // Chat with image context
+      final contextualMessage = '''
+You are an expert miniature painting coach. The user has shared an image of a miniature paint scheme they want to recreate.
+
+Analyze the image and provide:
+1. A breakdown of the main colors used
+2. Step-by-step painting instructions to achieve this look
+3. Suggested paint brands/colors (Citadel, Vallejo, etc.)
+4. Techniques needed (layering, drybrushing, washes, etc.)
+5. Tips for achieving the best results
+
+User message: $message
+''';
+      content = Content.multi([
+        InlineDataPart('image/jpeg', imageBytes),
+        TextPart(contextualMessage),
+      ]);
+    } else {
+      final contextualMessage = '''
 You are an expert miniature painting coach. Help the user with their question.
 User: $message
 ''';
+      content = Content.text(contextualMessage);
+    }
 
-    final stream = chat.sendMessageStream(Content.text(contextualMessage));
+    final stream = chat.sendMessageStream(content);
 
     await for (final chunk in stream) {
       if (chunk.text != null) {
